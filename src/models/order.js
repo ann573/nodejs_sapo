@@ -1,13 +1,16 @@
 import mongoose, { Schema } from "mongoose";
-import { decreaseQuantity } from "../services/productService.js";
-import { changeScore } from "../services/CustomerService.js";
+import { changeScoreAndAddOrder, editIsUsedScore } from "../services/CustomerService.js";
+import { AddOrder } from "../services/userService.js";
+import { decreaseQuantity } from './../controllers/variantControllers.js';
 
 const productInOrderSchema = new Schema(
   {
     name: String,
     price: Number,
     quantity: Number,
-    id: Schema.Types.ObjectId,
+    variant: String,
+    _id: Schema.Types.ObjectId,
+    idVariant: String
   },
   { _id: false }
 );
@@ -24,6 +27,13 @@ const orderSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    test: {
+      type: String,
+    },
+    score: {
+      type: Number
+    }
+
   },
   {
     timestamps: true,
@@ -32,19 +42,21 @@ const orderSchema = new Schema(
 );
 
 orderSchema.pre("save", async function (next) {
-  this.total = this.products.reduce(
-    (total, product) => total + product.quantity * product.price,
-    0
-  );
+  if (this.customer) {
+    editIsUsedScore(Number(this.score), this.customer);
+  }
   next();
 });
 
-orderSchema.post("save", async function (next) {
+orderSchema.post("save", async function (req) {
+
   this.products.forEach((item) => {
-    decreaseQuantity(item.id, item.quantity);
+    decreaseQuantity(item);
   });
-  if (this.customer) {
-    changeScore(this.customer, item.id)
+
+  AddOrder(this._id, req.id)
+  if (this.customer ) {
+    changeScoreAndAddOrder(this.customer, this._id);
   }
 });
 const Order = mongoose.model("Order", orderSchema);

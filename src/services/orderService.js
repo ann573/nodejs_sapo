@@ -4,7 +4,7 @@ import { AddOrder } from "./userService.js";
 
 export const postOrder = async (body) => {
   try {
-    const data = await Order.create(body);
+    const data = (await Order.create(body)).populate("customer");
 
     await AddOrder(data.employee,data._id)
     return data;
@@ -22,3 +22,4 @@ export const fetchOrder = async (limit, skip, idUser = "") => {
     console.log(error);
   }
 };
+

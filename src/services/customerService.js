@@ -1,4 +1,5 @@
 import Customer from "../models/customer.js";
+import { mongoose } from "mongoose";
 
 export const fetchAllCustomer = async (limit, skip, tel) => {
   try {
@@ -27,9 +28,7 @@ export const fetchCustomerById = async (id) => {
 
 export const addCustomer = async (dataBody) => {
   try {
-    
     const data = await Customer.create(dataBody);
-    console.log(data);
     return data;
   } catch (error) {
     console.log(error);
@@ -62,27 +61,59 @@ export const findCustomer = async (tel) => {
   }
 };
 
-export const changeScore = async (id) => {
+export const editIsUsedScore = async (score, id) => {
   try {
-    const customer = await Customer.findById(id).populate("orders");
+    const data = await Customer.findByIdAndUpdate(
+      id,
+      { $inc: { isUsed: score } },
+      { new: true }
+    );
 
+    return data;
+  } catch (error) {
+    console.error("Error updating customer score:", error);
+    throw error;
+  }
+};
+
+export const changeScoreAndAddOrder = async (id, idOrder) => {
+  try {
+    if (
+      !mongoose.Types.ObjectId.isValid(id) ||
+      !mongoose.Types.ObjectId.isValid(idOrder)
+    ) {
+      console.log("ID khách hàng hoặc ID đơn hàng không hợp lệ");
+      return;
+    }
+
+    const customer = await Customer.findById(id).populate("orders");
     if (!customer) {
       console.log("Không tìm thấy khách hàng");
       return;
     }
 
-    const totalAmount = customer.orders.reduce((sum, order) => {
-      return sum + order.total;
+    if (!customer.orders.some(order => order._id.toString() === idOrder)) {
+      customer.orders.push(idOrder);
+      await customer.save();
+    }
+
+    const updatedCustomer = await Customer.findById(id).populate("orders");
+    const totalSpent = updatedCustomer.orders.reduce((sum, order) => {
+      if (typeof order.total === 'number' && !isNaN(order.total)) {
+        return sum + order.total;
+      }
+      return sum; 
     }, 0);
 
-    const score = Math.floor(totalAmount / 200000);
+    const score = Math.floor(totalSpent / 200000) - updatedCustomer.isUsed;
 
-    customer.score = score;
-    await customer.save();
+    updatedCustomer.score = score;
+    await updatedCustomer.save();
 
-    console.log(`Điểm tích lũy của khách hàng là: ${score}`);
-    return score;
+    console.log(`Điểm tích lũy của khách hàng là: ${updatedCustomer.score}`);
+    return updatedCustomer.score;
   } catch (error) {
-    console.error("Lỗi tính điểm tích lũy và cập nhật điểm:", error);
+    console.error("Lỗi khi cập nhật điểm tích lũy:", error);
   }
 };
+

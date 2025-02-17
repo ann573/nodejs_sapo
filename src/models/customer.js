@@ -21,6 +21,10 @@ const customerSchema = new Schema(
         ref: "Order",
       },
     ],
+    isUsed: {
+      type: Number,
+      default: 0
+    }
   },
   {
     versionKey: false,

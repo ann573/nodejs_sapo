@@ -8,6 +8,7 @@ import {
   getProductByID
 } from "../controllers/productController.js";
 import { checkUser } from "./../middleware/checkUer.js";
+import { getProductVariant } from "../controllers/variantControllers.js";
 
 export const productRoutes = Router();
 
@@ -18,4 +19,4 @@ productRoutes.post("/", createProducts);
 productRoutes.patch("/:id", updateProducts);
 productRoutes.delete("/:id", removeProducts);
 productRoutes.get("/search", searchProducts);
-productRoutes.get("/:id", getProductByID);
+productRoutes.get("/:productId", getProductVariant);

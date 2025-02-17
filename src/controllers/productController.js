@@ -12,8 +12,8 @@ export const getAllProduct = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     const skip = parseInt(req.query.skip) || 0;
-    const sortTitle = req.query.sort_title 
-    const product = await fetchAllProduct(limit , skip , sortTitle);
+    const sortTitle = req.query.sort_title;
+    const product = await fetchAllProduct(limit, skip, sortTitle);
     successResponse(res, 200, product);
   } catch (error) {
     console.log(error);
@@ -68,8 +68,32 @@ export const removeProducts = async (req, res) => {
 
 export const searchProducts = async (req, res) => {
   try {
-    const data = await findProduct(req.query.sort_title);
-    return successResponse(res, 200, data);
+    const products = await findProduct(req.query.sort_title);
+
+    const formattedProducts = products.map((product) => {
+      // const prices = product.variants.map((variant) => variant.price);
+      // const minPrice = Math.min(...prices);
+      // const maxPrice = Math.max(...prices);
+
+      return {
+        _id: product._id,
+        name: product.name,
+        sort_title: product.sort_title,
+        stock: product?.variants.reduce(
+          (total, variant) => total + variant.stock,
+          0
+        ),
+        price: 80,
+        variants: product?.variants.map((variant) => ({
+          _id: variant._id,
+          attributeType: variant.attribute.attributeId.name,
+          size: variant.attribute.name,
+          stock: variant.stock,
+          price: variant.price,
+        })),
+      };
+    });
+    return successResponse(res, 200, formattedProducts);
   } catch (error) {
     console.log(error);
     errorResponse(res, 500, "Có lỗi xảy ra");

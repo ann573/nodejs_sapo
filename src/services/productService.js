@@ -1,11 +1,12 @@
+import mongoose from "mongoose";
 import Product from "./../models/product.js";
 export const fetchAllProduct = async (limit, skip, sortTitle) => {
   try {
     let query = {};
     if (sortTitle) {
       query.sort_title = {
-        $regex: sortTitle,  
-        $options: "i",      
+        $regex: sortTitle,
+        $options: "i",
       };
     }
     console.log(query);
@@ -15,7 +16,6 @@ export const fetchAllProduct = async (limit, skip, sortTitle) => {
     console.log(error);
   }
 };
-
 
 export const postProduct = async (body) => {
   try {
@@ -44,26 +44,23 @@ export const deleteProduct = async (id) => {
   }
 };
 
-export const decreaseQuantity = async (id, qtt) => {
-  try {
-    return await Product.findByIdAndUpdate(
-      id,
-      { $inc: { quantity: -qtt } },
-      { new: true }
-    );
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 export const findProduct = async (string) => {
   try {
-    return await Product.find({
-      sort_title: {
-        $regex: string,
-        $options: "i", 
+    const products = await Product.find({
+      sort_title: { $regex: string, $options: "i" },
+    }).populate({
+      path: "variants",
+      populate: {
+        path: "attribute",
+        select: "name",
+        populate: {
+          path: "attributeId",
+          select: "name",
+        },
       },
     });
+    return products;
   } catch (error) {
     console.log(error);
   }
