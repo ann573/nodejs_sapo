@@ -4,11 +4,7 @@ import { AddOrder } from "./userService.js";
 
 export const postOrder = async (body) => {
   try {
-    const data = await Order.create(body).populate([
-      { path: "customer" },
-      { path: "employee" }
-    ])
-
+    const data = await Order.create(body)
     await AddOrder(data.employee,data._id)
     return data;
   } catch (error) {
@@ -19,8 +15,8 @@ export const postOrder = async (body) => {
 export const fetchOrder = async (limit, skip, idUser = "") => {
   try {
 
-    const data = await Order.find(idUser === "" ? {} : { employee: new mongoose.Types.ObjectId(idUser) }).limit(limit).skip(skip).populate([
-      { path: "customer" ,
+    const data = await Order.find(idUser === "" ? {} : { employee: new mongoose.Types.ObjectId(idUser) }).sort({ createdAt: -1 }).limit(limit).skip(skip).populate([
+      { path: "customer" , 
         select: "name telephone"
       },
       { path: "employee",

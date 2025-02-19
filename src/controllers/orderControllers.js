@@ -57,7 +57,6 @@ export const getOrdersToday = async (req, res) => {
   const startOfDay = moment().startOf("day").toDate();
   const endOfDay = moment().endOf("day").toDate();
   const employeeId = new mongoose.Types.ObjectId(req.id);
-
   try {
     const summary = await Order.aggregate([
       {
@@ -117,5 +116,67 @@ export const getTotal = async (req, res) => {
   } catch (error) {
     console.log(error);
     return errorResponse(res, 500, "Có lỗi xảy ra khi lấy thông tin");
+  }
+};
+
+export const getOrderWeek = async (req, res) => {
+  try {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 6); 
+
+    const idEmployee = new mongoose.Types.ObjectId(req.id)
+    const result = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sevenDaysAgo, $lte: today }, 
+          ...(req.role === "boss" ? {} :{employee: idEmployee})
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%d-%m-%Y", date: "$createdAt" } }, // Nhóm theo ngày với định dạng dd-mm-yyyy
+          totalRevenue: { $sum: "$total" }, // Tổng doanh thu trong ngày
+          orderCount: { $sum: 1 } // Số lượng đơn hàng trong ngày
+        }
+      },
+      {
+        $sort: { "_id": 1 } // Sắp xếp theo ngày (tăng dần)
+      },
+      {
+        $project: {
+          date: "$_id", // Tên trường mới cho ngày
+          totalRevenue: 1, // Giữ lại tổng doanh thu
+          orderCount: 1, // Giữ lại số lượng đơn hàng
+          _id: 0 // Loại bỏ trường _id mặc định
+        }
+      }
+    ]);
+
+    // Tạo mảng các ngày trong 7 ngày gần nhất
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(sevenDaysAgo);
+      date.setDate(date.getDate() + i);
+      // Chuyển đổi ngày thành dạng dd-mm-yyyy
+      const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+      dates.push(formattedDate);
+    }
+
+    // Tạo một đối tượng để dễ dàng kiểm tra xem ngày có dữ liệu hay không
+    const resultMap = result.reduce((acc, item) => {
+      acc[item.date] = item;
+      return acc;
+    }, {});
+
+    const filledResult = dates.map(date => {
+      const dayData = resultMap[date] || { date, totalRevenue: 0, orderCount: 0 };
+      return dayData;
+    });
+
+    return successResponse(res, 200,filledResult)
+  } catch (error) {
+    console.error("Error fetching data: ", error);
+    res.status(500).json({ message: "Server Error" });
   }
 };

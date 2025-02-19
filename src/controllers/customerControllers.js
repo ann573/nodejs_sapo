@@ -61,8 +61,7 @@ export const updateCustomer = async (req, res) => {
 
 export const searchCustomer = async (req, res) => {
   try {
-    const { tel } = req.params;
-
+    const { tel } = req.query;
     const data = await findCustomer(tel);
     successResponse(res, 200, data);
   } catch (error) {

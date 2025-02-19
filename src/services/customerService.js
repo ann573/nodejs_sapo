@@ -50,7 +50,7 @@ export const editCustomer = async (id, dataBody) => {
 export const findCustomer = async (tel) => {
   try {
     const data = await Customer.find({
-      $telephone: {
+      telephone: {
         $regex: tel,
         $options: "i",
       },
