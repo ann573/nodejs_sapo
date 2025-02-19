@@ -110,7 +110,6 @@ export const changeScoreAndAddOrder = async (id, idOrder) => {
     updatedCustomer.score = score;
     await updatedCustomer.save();
 
-    console.log(`Điểm tích lũy của khách hàng là: ${updatedCustomer.score}`);
     return updatedCustomer.score;
   } catch (error) {
     console.error("Lỗi khi cập nhật điểm tích lũy:", error);

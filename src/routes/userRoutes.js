@@ -10,6 +10,6 @@ userRoutes.post("/login", login);
 userRoutes.use("*", checkUser)
 
 userRoutes.post("/register", register);
-userRoutes.get("/employee", getUser);
+userRoutes.get("/employee", getUser); 
 
 export default userRoutes;

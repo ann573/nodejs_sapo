@@ -75,10 +75,9 @@ export const decreaseQuantity = async (product) => {
         $inc: { 
           stock: -product.quantity,
         },
-      },
+      }, 
       { new: true }
     );
-    console.log(abc);
   } catch (error) {
     console.log(error);
   }

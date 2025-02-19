@@ -9,7 +9,6 @@ export const fetchAllProduct = async (limit, skip, sortTitle) => {
         $options: "i",
       };
     }
-    console.log(query);
 
     return await Product.find(query).limit(limit).skip(skip);
   } catch (error) {
