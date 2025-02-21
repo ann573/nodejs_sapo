@@ -1,9 +1,10 @@
 import Customer from "../models/customer.js";
 import { mongoose } from "mongoose";
 
-export const fetchAllCustomer = async (limit, skip, tel) => {
+export const fetchAllCustomer = async (limit, skip, tel, sort) => {
   try {
     let query = {};
+    let desc = {};
     if (tel) {
       query.telephone = {
         $regex: tel,
@@ -11,7 +12,12 @@ export const fetchAllCustomer = async (limit, skip, tel) => {
       };
     }
 
-    return await Customer.find(query).limit(limit).skip(skip);
+    if (Number(sort) === 0) {
+      desc = {createdAt: -1}
+    } else if ((Number(sort) === 1)) {
+      desc = {score: 1}
+    } else desc = {score: -1}
+    return await Customer.find(query).limit(limit).skip(skip).sort(desc);
   } catch (error) {
     console.log(error);
   }

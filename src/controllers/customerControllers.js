@@ -12,8 +12,9 @@ export const getAllCustomer = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 0;
     const skip = parseInt(req.query.skip) || 0;
-    const tel = req.query.tel;
-    const data = await fetchAllCustomer(limit, skip, tel);
+    const tel = req.query.telephone;
+    const sort = req.query.sort || 0;
+    const data = await fetchAllCustomer(limit, skip, tel, sort);
     successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
@@ -69,3 +70,13 @@ export const searchCustomer = async (req, res) => {
     errorResponse(res, 500);
   }
 };
+
+export const totalCustomer = async (req, res) => {
+  try {
+    const data = await Customer.countDocuments()
+    return successResponse(res, 200, data);
+  } catch (error) {
+    console.log(error);
+    errorResponse(res, 500);
+  }
+}

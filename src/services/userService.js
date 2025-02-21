@@ -29,11 +29,13 @@ export const findAllUser = async () => {
 export const AddOrder = async (idUser, idOrder) => {
   try {
     const objectId = new mongoose.Types.ObjectId(process.env.BOSS);
+    console.log("----------------- user", idUser);
+    console.log("----------------- boss", objectId);
     await User.findByIdAndUpdate(idUser, {
-      $push: { orders: idOrder },
+      $addToSet: { orders: idOrder },
     });
     await User.findByIdAndUpdate(objectId, {
-      $push: { orders: idOrder },
+      $addToSet: { orders: idOrder },
     });
   } catch (error) {
     console.log(error);

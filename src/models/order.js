@@ -54,8 +54,6 @@ orderSchema.post("save", async function (req) {
     decreaseQuantity(item);
   });
 
-  AddOrder(req.id, this._id)
-  AddOrder(this._id, req.id)
   if (this.customer ) {
     changeScoreAndAddOrder(this.customer, this._id);
   }

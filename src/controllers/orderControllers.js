@@ -1,4 +1,6 @@
 import moment from "moment";
+import {startOfDay, endOfDay, subDays } from 'date-fns'
+
 import Order from "../models/order.js";
 import { postOrder, fetchOrder } from "../services/orderService.js";
 import { errorResponse, successResponse } from "./../utils/returnResponse.js";
@@ -121,34 +123,34 @@ export const getTotal = async (req, res) => {
 
 export const getOrderWeek = async (req, res) => {
   try {
-    const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 6); 
+    const today = startOfDay(new Date()); 
+    const sevenDaysAgo = subDays(today, 6); 
+    const endOfToday = endOfDay(new Date());
 
-    const idEmployee = new mongoose.Types.ObjectId(req.id)
+    const idEmployee = new mongoose.Types.ObjectId(req.id);
     const result = await Order.aggregate([
       {
         $match: {
-          createdAt: { $gte: sevenDaysAgo, $lte: today }, 
-          ...(req.role === "boss" ? {} :{employee: idEmployee})
+          createdAt: { $gte: sevenDaysAgo, $lte: endOfToday }, 
+          ...(req.role === "boss" ? {} : { employee: idEmployee })
         }
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%d-%m-%Y", date: "$createdAt" } }, // Nhóm theo ngày với định dạng dd-mm-yyyy
-          totalRevenue: { $sum: "$total" }, // Tổng doanh thu trong ngày
-          orderCount: { $sum: 1 } // Số lượng đơn hàng trong ngày
+          _id: { $dateToString: { format: "%d-%m-%Y", date: "$createdAt" } },
+          totalRevenue: { $sum: "$total" },
+          orderCount: { $sum: 1 }
         }
       },
       {
-        $sort: { "_id": 1 } // Sắp xếp theo ngày (tăng dần)
+        $sort: { "_id": 1 }
       },
       {
         $project: {
-          date: "$_id", // Tên trường mới cho ngày
-          totalRevenue: 1, // Giữ lại tổng doanh thu
-          orderCount: 1, // Giữ lại số lượng đơn hàng
-          _id: 0 // Loại bỏ trường _id mặc định
+          date: "$_id",
+          totalRevenue: 1,
+          orderCount: 1,
+          _id: 0
         }
       }
     ]);
@@ -156,14 +158,11 @@ export const getOrderWeek = async (req, res) => {
     // Tạo mảng các ngày trong 7 ngày gần nhất
     const dates = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(sevenDaysAgo);
-      date.setDate(date.getDate() + i);
-      // Chuyển đổi ngày thành dạng dd-mm-yyyy
+      const date = subDays(today, 6 - i); // Sử dụng subDays để tính toán ngày
       const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
       dates.push(formattedDate);
     }
 
-    // Tạo một đối tượng để dễ dàng kiểm tra xem ngày có dữ liệu hay không
     const resultMap = result.reduce((acc, item) => {
       acc[item.date] = item;
       return acc;
@@ -174,7 +173,7 @@ export const getOrderWeek = async (req, res) => {
       return dayData;
     });
 
-    return successResponse(res, 200,filledResult)
+    return successResponse(res, 200, filledResult);
   } catch (error) {
     console.error("Error fetching data: ", error);
     res.status(500).json({ message: "Server Error" });
