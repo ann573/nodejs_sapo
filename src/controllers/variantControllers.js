@@ -82,3 +82,12 @@ export const decreaseQuantity = async (product) => {
     console.log(error);
   }
 };
+
+export const checkExistAttribute = async (string) => {
+  try {
+    const data = await Variant.findOne({attribute: string})
+    return data
+  } catch (error) {
+    console.log(error);
+  }
+}

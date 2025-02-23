@@ -4,9 +4,11 @@ import {
   fetchAllCustomer,
   fetchCustomerById,
   editCustomer,
-  findCustomer
+  findCustomer,
+  removeCustomer
 } from "../services/CustomerService.js";
 import { errorResponse, successResponse } from "./../utils/returnResponse.js";
+
 
 export const getAllCustomer = async (req, res) => {
   try {
@@ -74,6 +76,17 @@ export const searchCustomer = async (req, res) => {
 export const totalCustomer = async (req, res) => {
   try {
     const data = await Customer.countDocuments()
+    return successResponse(res, 200, data);
+  } catch (error) {
+    console.log(error);
+    errorResponse(res, 500);
+  }
+}
+
+export const deleteCustomerById = async (req, res) => {
+  const {id} = req.params
+  try {
+    const data = await removeCustomer(id)
     return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);

@@ -68,25 +68,10 @@ export const getOrdersToday = async (req, res) => {
         },
       },
       {
-        $addFields: {
-          productsArray: { $ifNull: ["$products", []] },
-        },
-      },
-      {
         $group: {
           _id: null,
           totalAmount: {
-            $sum: {
-              $sum: {
-                $map: {
-                  input: "$productsArray",
-                  as: "product",
-                  in: {
-                    $multiply: ["$$product.price", "$$product.quantity"],
-                  },
-                },
-              },
-            },
+            $sum: "$total"
           },
           totalOrders: { $sum: 1 },
         },

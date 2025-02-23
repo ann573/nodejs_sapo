@@ -1,11 +1,14 @@
+import bcrypt from "bcryptjs";
 import { findOneUser, postUser } from "../services/userService.js";
 import { errorResponse, successResponse } from "../utils/returnResponse.js";
-import bcrypt from "bcryptjs";
 
-import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
-dotenv.config();
+import { generateAccessToken, generateRefreshToken } from "./../utils/jwt.js";
+import jwt from 'jsonwebtoken';
 
+import dotenv from 'dotenv';
+dotenv.config()
+
+const {REFRESH_TOKEN_SECRET} = process.env
 export const register = async (req, res) => {
   try {
     let { email, password, name } = req.body;
@@ -37,15 +40,40 @@ export const login = async (req, res) => {
 
     user.password = undefined;
 
-    const accessToken = jwt.sign(
-      { _id: user._id, role: user.role, name: user.name },
-      process.env.PRIVATE_KEY,
-      { expiresIn: "1d" }
-    );
+    const data = { _id: user._id, role: user.role, name: user.name };
 
-    successResponse(res, 200, { accessToken, user });
+    const accessToken = generateAccessToken(data);
+    const refreshToken = generateRefreshToken(data);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      path: "/",
+    });
+
+    successResponse(res, 200, { accessToken, user: data });
   } catch (error) {
     console.log(error);
     errorResponse(res, 500, "Có lỗi xảy ra, vui lòng thử lại sau");
   }
+};
+
+export const refreshToken = (req, res) => {
+  const token = req.cookies.refreshToken;
+  if (!token) return errorResponse(res, 401, "Chưa xác thực");
+
+  jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+
+    const accessToken = generateAccessToken({ 
+      _id: user._id,
+      role: user.role,
+      name: user.name,
+    });
+
+
+
+    successResponse(res, 200, { accessToken});
+  });
 };

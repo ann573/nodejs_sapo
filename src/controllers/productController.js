@@ -71,9 +71,6 @@ export const searchProducts = async (req, res) => {
     const products = await findProduct(req.query.sort_title);
 
     const formattedProducts = products.map((product) => {
-      // const prices = product.variants.map((variant) => variant.price);
-      // const minPrice = Math.min(...prices);
-      // const maxPrice = Math.max(...prices);
 
       return {
         _id: product._id,

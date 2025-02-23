@@ -25,7 +25,7 @@ export const fetchAllCustomer = async (limit, skip, tel, sort) => {
 
 export const fetchCustomerById = async (id) => {
   try {
-    const data = await Customer.findById(id);
+    const data = await Customer.findById(id).populate("orders", "total");
     return data;
   } catch (error) {
     console.log(error);
@@ -122,3 +122,12 @@ export const changeScoreAndAddOrder = async (id, idOrder) => {
   }
 };
 
+export const removeCustomer = async (id) => {
+  try {
+    const data = await Customer.findByIdAndDelete(id)
+    return data
+  } catch (error) {
+    console.error("Lỗi khi cập nhật điểm tích lũy:", error);
+
+  }
+}
