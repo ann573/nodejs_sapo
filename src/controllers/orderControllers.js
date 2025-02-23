@@ -1,5 +1,5 @@
 import moment from "moment";
-import {startOfDay, endOfDay, subDays } from 'date-fns'
+import { startOfDay, endOfDay, subDays } from "date-fns";
 
 import Order from "../models/order.js";
 import { postOrder, fetchOrder } from "../services/orderService.js";
@@ -35,25 +35,22 @@ export const getOrder = async (req, res) => {
 
 export const getOrderById = async (req, res) => {
   try {
-    let {id} = req.params
+    let { id } = req.params;
 
-    id = new mongoose.Types.ObjectId(id)
-    const data = await Order.findById(id).populate([
-      { path: "customer",
-        select: "name telephone"
-       },
-      { path: "employee",
-        select: "name role"
-       }
-    ]).lean();
-    
+    id = new mongoose.Types.ObjectId(id);
+    const data = await Order.findById(id)
+      .populate([
+        { path: "customer", select: "name telephone" },
+        { path: "employee", select: "name role" },
+      ])
+      .lean();
 
-    return successResponse(res, 200, data)
+    return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
     errorResponse(res, 500);
   }
-}
+};
 
 export const getOrdersToday = async (req, res) => {
   const startOfDay = moment().startOf("day").toDate();
@@ -71,7 +68,7 @@ export const getOrdersToday = async (req, res) => {
         $group: {
           _id: null,
           totalAmount: {
-            $sum: "$total"
+            $sum: "$total",
           },
           totalOrders: { $sum: 1 },
         },
@@ -98,8 +95,10 @@ export const getOrdersToday = async (req, res) => {
 
 export const getTotal = async (req, res) => {
   try {
-    const totalOrders = await Order.countDocuments(req.role === "boss" ? {} : {employee: req.id});
-    return successResponse(res, 200, totalOrders)
+    const totalOrders = await Order.countDocuments(
+      req.role === "boss" ? {} : { employee: req.id }
+    );
+    return successResponse(res, 200, totalOrders);
   } catch (error) {
     console.log(error);
     return errorResponse(res, 500, "Có lỗi xảy ra khi lấy thông tin");
@@ -108,43 +107,46 @@ export const getTotal = async (req, res) => {
 
 export const getOrderWeek = async (req, res) => {
   try {
-    const today = startOfDay(new Date()); 
-    const sevenDaysAgo = subDays(today, 6); 
+    const today = startOfDay(new Date());
+    const sevenDaysAgo = subDays(today, 6);
     const endOfToday = endOfDay(new Date());
 
     const idEmployee = new mongoose.Types.ObjectId(req.id);
     const result = await Order.aggregate([
       {
         $match: {
-          createdAt: { $gte: sevenDaysAgo, $lte: endOfToday }, 
-          ...(req.role === "boss" ? {} : { employee: idEmployee })
-        }
+          createdAt: { $gte: sevenDaysAgo, $lte: endOfToday },
+          ...(req.role === "boss" ? {} : { employee: idEmployee }),
+        },
       },
       {
         $group: {
           _id: { $dateToString: { format: "%d-%m-%Y", date: "$createdAt" } },
           totalRevenue: { $sum: "$total" },
-          orderCount: { $sum: 1 }
-        }
+          orderCount: { $sum: 1 },
+        },
       },
       {
-        $sort: { "_id": 1 }
+        $sort: { _id: 1 },
       },
       {
         $project: {
           date: "$_id",
           totalRevenue: 1,
           orderCount: 1,
-          _id: 0
-        }
-      }
+          _id: 0,
+        },
+      },
     ]);
 
     // Tạo mảng các ngày trong 7 ngày gần nhất
     const dates = [];
     for (let i = 0; i < 7; i++) {
       const date = subDays(today, 6 - i); // Sử dụng subDays để tính toán ngày
-      const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+      const formattedDate = `${String(date.getDate()).padStart(
+        2,
+        "0"
+      )}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
       dates.push(formattedDate);
     }
 
@@ -153,8 +155,12 @@ export const getOrderWeek = async (req, res) => {
       return acc;
     }, {});
 
-    const filledResult = dates.map(date => {
-      const dayData = resultMap[date] || { date, totalRevenue: 0, orderCount: 0 };
+    const filledResult = dates.map((date) => {
+      const dayData = resultMap[date] || {
+        date,
+        totalRevenue: 0,
+        orderCount: 0,
+      };
       return dayData;
     });
 
@@ -164,3 +170,5 @@ export const getOrderWeek = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+

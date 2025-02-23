@@ -1,25 +1,32 @@
-import cors from 'cors';
-import dotenv from 'dotenv';
+import cors from "cors";
+import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./src/config/db.js";
 import routes from "./src/routes/index.js";
-import cookieParser from "cookie-parser";
-dotenv.config()
 
-const {PORT} = process.env
+dotenv.config();
+
+const { PORT, URL_FRONTEND } = process.env;
 
 const app = express();
 
+// const limiter = rateLimit({
+// 	windowMs: 10 * 60 * 1000, // 15 minutes
+// 	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+// 	standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+// 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+// 	// store: ... , // Redis, Memcached, etc. See below.
+// })
 app.use(
   cors({
-    origin: "http://localhost:5173", // Domain frontend
+    origin: URL_FRONTEND, // Domain frontend
     credentials: true, // Cho phép gửi cookie
     allowedHeaders: ["Authorization", "Content-Type"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
 
-app.use(cookieParser());
+// app.use(limiter)
 
 app.use(express.json());
 

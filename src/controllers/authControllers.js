@@ -1,14 +1,26 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer"
+import crypto from "crypto"; 
 import { findOneUser, postUser } from "../services/userService.js";
 import { errorResponse, successResponse } from "../utils/returnResponse.js";
 
 import { generateAccessToken, generateRefreshToken } from "./../utils/jwt.js";
-import jwt from 'jsonwebtoken';
 
-import dotenv from 'dotenv';
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
-const {REFRESH_TOKEN_SECRET} = process.env
+const { REFRESH_TOKEN_SECRET, EMAIL_USER, EMAIL_PASS } = process.env;
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail", // Sử dụng Gmail, có thể thay đổi dịch vụ khác
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASS,
+  },
+});
+
+const otpStore =  {};
 export const register = async (req, res) => {
   try {
     let { email, password, name } = req.body;
@@ -66,14 +78,61 @@ export const refreshToken = (req, res) => {
   jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
 
-    const accessToken = generateAccessToken({ 
+    const accessToken = generateAccessToken({
       _id: user._id,
       role: user.role,
       name: user.name,
     });
 
-
-
-    successResponse(res, 200, { accessToken});
+    successResponse(res, 200, { accessToken });
   });
+};
+
+// Cấu hình Nodemailer
+
+
+// API Gửi OTP qua Email
+export const sendOTP = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Vui lòng cung cấp email hợp lệ." });
+  }
+
+  // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
+  const otp = crypto.randomInt(100000, 999999).toString();
+
+  // Lưu OTP vào bộ nhớ tạm
+  otpStore[email] = otp;
+
+  // Thiết lập nội dung email
+  const mailOptions = {
+    from: EMAIL_USER,
+    to: email,
+    subject: "Mã OTP xác thực",
+    text: `Mã OTP của bạn là: ${otp}. Mã có hiệu lực trong 5 phút.`,
+  };
+
+  try {
+    // Gửi email
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Mã OTP đã được gửi tới email của bạn." });
+  } catch (error) {
+    console.error("Lỗi khi gửi email:", error);
+    res.status(500).json({ message: "Không thể gửi OTP, vui lòng thử lại." });
+  }
+};
+
+// API Xác thực OTP
+export const verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (otpStore[email] === otp) {
+    delete otpStore[email]; // Xóa OTP sau khi xác thực thành công
+    res.status(200).json({ message: "Xác thực OTP thành công." });
+  } else {
+    res
+      .status(400)
+      .json({ message: "Mã OTP không chính xác hoặc đã hết hạn." });
+  }
 };

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrder, getOrder,getOrdersToday,getTotal,getOrderById,getOrderWeek } from "./../controllers/orderControllers.js";
+import { createOrder, getOrder, getOrderById, getOrdersToday, getOrderWeek, getTotal } from "./../controllers/orderControllers.js";
 import { checkUser } from "./../middleware/checkUer.js";
 
 const orderRoutes = Router();
@@ -15,7 +15,9 @@ orderRoutes.get("/total", getTotal);
 orderRoutes.get("/today", getOrdersToday);
 orderRoutes.get("/week", getOrderWeek);
 
+
 orderRoutes.get("/:id", getOrderById);
  
+
 export default orderRoutes;
  
