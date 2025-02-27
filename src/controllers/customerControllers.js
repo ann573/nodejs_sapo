@@ -17,7 +17,7 @@ export const getAllCustomer = async (req, res) => {
     const tel = req.query.telephone;
     const sort = req.query.sort || 0;
     const data = await fetchAllCustomer(limit, skip, tel, sort);
-    successResponse(res, 200, data);
+    return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
     errorResponse(res, 500);
@@ -28,7 +28,7 @@ export const getCustomerById = async (req, res) => {
   try {
     const { id } = req.params;
     const data = await fetchCustomerById(id);
-    successResponse(res, 200, data);
+    return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
     errorResponse(res, 500);
@@ -42,7 +42,7 @@ export const createCustomer = async (req, res) => {
       return errorResponse(res, 400, "Khách hàng với số điện thoại đã tồn tại");
     const dataBody = { ...req.body, orders: [], score: 0 };
     const data = await addCustomer(dataBody);
-    successResponse(res, 201, data);
+    return successResponse(res, 201, data);
   } catch (error) {
     console.log(error);
     errorResponse(res, 500);
@@ -54,10 +54,10 @@ export const updateCustomer = async (req, res) => {
     const { id } = req.params;
 
     const data = await editCustomer(id, req.body);
-    successResponse(res, 200, data);
+    return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
-    errorResponse(res, 500);
+    return errorResponse(res, 500);
   }
 };
 

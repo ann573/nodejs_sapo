@@ -26,9 +26,8 @@ export const checkUser = async (req, res, next) => {
 
     req.role = decoded.role;
     req.name = decoded.name;
-    req.id = decoded._id
+    req.id = decoded._id;
     next();
-    
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({ message: "Token hết hạn" });

@@ -7,6 +7,7 @@ import {
   postProduct,
 } from "../services/productService.js";
 import { errorResponse, successResponse } from "../utils/returnResponse.js";
+import Product from "../models/product.js";
 
 export const getAllProduct = async (req, res) => {
   try {
@@ -96,3 +97,14 @@ export const searchProducts = async (req, res) => {
     errorResponse(res, 500, "Có lỗi xảy ra");
   }
 };
+
+export const getTotalProducts = async (req, res) => {
+  try {
+    const total =  await Product.countDocuments()
+    return successResponse(res,200,total)
+  } catch (error) {
+    console.log(error);
+  }
+
+
+}

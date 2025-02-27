@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./src/config/db.js";
 import routes from "./src/routes/index.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -22,11 +23,12 @@ app.use(
     origin: URL_FRONTEND, // Domain frontend
     credentials: true, // Cho phép gửi cookie
     allowedHeaders: ["Authorization", "Content-Type"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   })
 );
 
 // app.use(limiter)
+app.use(cookieParser())
 
 app.use(express.json());
 

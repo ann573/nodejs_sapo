@@ -10,8 +10,17 @@ export const fetchAllProduct = async (limit, skip, sortTitle) => {
       };
     }
 
-    return await Product.find(query).limit(limit).skip(skip);
-  } catch (error) {
+    return await Product.find(query)
+    .limit(limit)
+    .skip(skip)
+    .populate({
+      path: 'variants',  // Populate trường variants
+      populate: {        // Populate trường attribute bên trong mỗi variant
+        path: 'attribute',
+        select: 'name attributeId'
+      }
+    });
+    } catch (error) {
     console.log(error);
   }
 };
@@ -67,7 +76,12 @@ export const findProduct = async (string) => {
 
 export const findProductByID = async (string) => {
   try {
-    return await Product.findById(string);
+    return await Product.findById(string).populate({
+      path: "variants",
+      populate: {
+        path: "attribute",
+      },
+    });
   } catch (error) {
     console.log(error);
   }

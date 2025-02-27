@@ -23,19 +23,22 @@ export const getProductVariant = async (req, res) => {
     }
 
     const formattedProduct = {
-        _id: product._id,
-        name: product.name,
-        price: 80,
-        sort_title: product.sort_title,
-        stock: product.variants.reduce((total, variant) => total + variant.stock, 0),
-        variants: product.variants.map(variant => ({
-          _id: variant._id,
-          attributeType: variant.attribute.attributeId.name,
-          size: variant.attribute.name,
-          stock: variant.stock,
-          price: variant.price
-        }))
-      };
+      _id: product._id,
+      name: product.name,
+      price: 80,
+      sort_title: product.sort_title,
+      stock: product.variants.reduce(
+        (total, variant) => total + variant.stock,
+        0
+      ),
+      variants: product.variants.map((variant) => ({
+        _id: variant._id,
+        attributeType: variant.attribute.attributeId.name,
+        size: variant.attribute.name,
+        stock: variant.stock,
+        price: variant.price,
+      })),
+    };
     return successResponse(res, 200, formattedProduct);
   } catch (error) {
     console.log(error);
@@ -45,21 +48,30 @@ export const getProductVariant = async (req, res) => {
 
 export const createVariant = async (req, res) => {
   try {
-    const isExist = await Variant.findOne({
+    // Kiểm tra các biến thể đã tồn tại
+    const existingVariants = await Variant.find({
       idProduct: req.body.idProduct,
-      attribute: req.body.attribute,
+      attribute: { $in: req.body.map((v) => v.attribute) },
     });
-    if (isExist) {
-      return errorResponse(res, 201, "Biến thể đã tồn tại với sản phẩm này ");
-    }
-    const data = await Variant.create(req.body);
 
-    await Product.findByIdAndUpdate(data.idProduct, {
-      $addToSet: { variants: data._id },
+    if (existingVariants.length > 0) {
+      return errorResponse(res, 201, "Một hoặc nhiều biến thể đã tồn tại.");
+    }
+
+    // Thêm nhiều biến thể cùng lúc
+    const variants = await Variant.insertMany(req.body);
+
+    // Lấy danh sách các _id của biến thể vừa thêm
+    const variantIds = variants.map((variant) => variant._id);
+
+    // Cập nhật sản phẩm, thêm các _id vào mảng 'variants'
+    await Product.findByIdAndUpdate(req.body[0].idProduct, {
+      $addToSet: { variants: { $each: variantIds } },
     });
-    return successResponse(res, 201, data);
+
+    return successResponse(res, 201, variants);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return errorResponse(res, 500, "Có lỗi xảy ra");
   }
 };
@@ -72,10 +84,10 @@ export const decreaseQuantity = async (product) => {
         _id: idVariant,
       },
       {
-        $inc: { 
+        $inc: {
           stock: -product.quantity,
         },
-      }, 
+      },
       { new: true }
     );
   } catch (error) {
@@ -85,9 +97,9 @@ export const decreaseQuantity = async (product) => {
 
 export const checkExistAttribute = async (string) => {
   try {
-    const data = await Variant.findOne({attribute: string})
-    return data
+    const data = await Variant.findOne({ attribute: string });
+    return data;
   } catch (error) {
     console.log(error);
   }
-}
+};

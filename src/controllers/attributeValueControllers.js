@@ -7,7 +7,7 @@ export const getAllAttributeValue = async (req, res) => {
     return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
-    errorResponse(res, 500, "Có lỗi xảy ra");
+    return errorResponse(res, 500, "Có lỗi xảy ra");
   }
 };
 
@@ -17,7 +17,7 @@ export const createAttributeValue = async (req, res) => {
     return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
-    errorResponse(res, 500, "Có lỗi xảy ra");
+    return errorResponse(res, 500, "Có lỗi xảy ra");
   }
 };
 
@@ -32,7 +32,7 @@ export const removeAttributeValue = async (req, res) => {
     return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
-    errorResponse(res, 500, "Có lỗi xảy ra");
+    return errorResponse(res, 500, "Có lỗi xảy ra");
   }
 };
 

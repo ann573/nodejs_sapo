@@ -10,10 +10,10 @@ export const createOrder = async (req, res) => {
   try {
     const order = { ...req.body, employee: req.id };
     const data = await postOrder(order);
-    successResponse(res, 201, data);
+    return successResponse(res, 201, data);
   } catch (error) {
     console.log(error);
-    errorResponse(res, 500);
+    return errorResponse(res, 500);
   }
 };
 
@@ -29,7 +29,7 @@ export const getOrder = async (req, res) => {
     return successResponse(res, 200, orderList);
   } catch (error) {
     console.log(error);
-    errorResponse(res, 500);
+    return errorResponse(res, 500);
   }
 };
 
@@ -48,7 +48,7 @@ export const getOrderById = async (req, res) => {
     return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
-    errorResponse(res, 500);
+    return errorResponse(res, 500);
   }
 };
 
