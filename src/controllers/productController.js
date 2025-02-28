@@ -5,6 +5,7 @@ import {
   findProduct,
   findProductByID,
   postProduct,
+  deleteProduct
 } from "../services/productService.js";
 import { errorResponse, successResponse } from "../utils/returnResponse.js";
 import Product from "../models/product.js";
@@ -33,17 +34,20 @@ export const createProducts = async (req, res) => {
   if (req.role !== "boss") {
     return errorResponse(res, 400, "Bạn không có quyền thao tác");
   }
-
+  const data = await Product.findOne({sort_title: req.body.sort_title})
+  if(data) {
+    return errorResponse(res, 400, "Mã sản phẩm đã tồn tại")
+  }
   try {
     const data = await postProduct(req.body);
     return successResponse(res, 201, data, "Tạo sản phẩm thành công");
-  } catch (error) {
+  } catch (error) { 
     console.log(error);
   }
 };
 
 export const updateProducts = async (req, res) => {
-  const id = new mongoose.Schema.ObjectId(req.params.id);
+  const id = new mongoose.Types.ObjectId(req.params.id);
   if (req.role !== "boss") {
     return errorResponse(res, 400, "Bạn không có quyền thao tác");
   }
@@ -57,7 +61,7 @@ export const updateProducts = async (req, res) => {
 };
 
 export const removeProducts = async (req, res) => {
-  const id = new mongoose.Schema.ObjectId(req.params.id);
+  const id = new mongoose.Types.ObjectId(req.params.id);
 
   try {
     const data = await deleteProduct(id);

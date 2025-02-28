@@ -103,3 +103,48 @@ export const checkExistAttribute = async (string) => {
     console.log(error);
   }
 };
+
+export const updateVariant = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    // Kiểm tra và chuyển đổi productId hợp lệ
+    const validProductId = mongoose.Types.ObjectId.isValid(productId)
+      ? new mongoose.Types.ObjectId(productId)
+      : null;
+
+    if (!validProductId) {
+      return res.status(400).json({ message: "Product ID không hợp lệ!" });
+    }
+
+    // Lấy danh sách variant cần xóa
+    const variantsToDelete = await Variant.find({ idProduct: validProductId }).select("_id");
+    const variantIds = variantsToDelete.map((variant) => variant._id);
+
+    // Xóa các variant cũ
+    await Variant.deleteMany({ _id: { $in: variantIds } });
+
+    // Thêm mới các variant
+    const newVariants = req.body.map((variant) => ({
+      ...variant,
+      idProduct: validProductId, // Gắn idProduct cho các variant mới
+    }));
+
+    const variants = await Variant.insertMany(newVariants);
+
+    const variantIdPush = variants.map((variant) => variant._id);
+
+    // Cập nhật lại mảng variants trong Product
+    await Product.updateOne(
+      { _id: validProductId },
+      {
+        $set: { variants: variantIdPush },
+      }
+    );
+
+    return successResponse(res, 201, variants, "Thay đổi thành công");
+  } catch (error) {
+    console.log(error);
+    return errorResponse(res, 500, "Có lỗi xảy ra, vui lòng thử lại sau");
+  }
+};

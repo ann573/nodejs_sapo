@@ -171,4 +171,37 @@ export const getOrderWeek = async (req, res) => {
   }
 };
 
+export const getTopProducts = async (req, res) => {
+  try {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const topProducts = await Order.aggregate([
+          { 
+              $match: { 
+                  createdAt: { $gte: oneWeekAgo } 
+              } 
+          },
+          { 
+              $unwind: "$products" 
+          },
+          { 
+              $group: {
+                  _id: "$products.name",
+                  totalSold: { $sum: "$products.quantity" }
+              } 
+          },
+          { 
+              $sort: { totalSold: -1 } 
+          },
+          { 
+              $limit: 3
+          }
+      ]);
+
+      return successResponse(res, 200, topProducts)
+  } catch (error) {
+      res.status(500).json({ message: "Lỗi server", error });
+  }
+};
 
