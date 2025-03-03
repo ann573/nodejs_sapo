@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { checkUser } from './../middleware/checkUer.js';
 import {
-  getProductVariant,
   createVariant,
+  getProductVariant,
   updateVariant
 } from "../controllers/variantControllers.js";
+import { checkUser } from "./../middleware/checkUer.js";
 
 const variantRoutes = Router();
 
-variantRoutes.use("*", checkUser)
+variantRoutes.use("*", checkUser);
 
 variantRoutes.get("/:productId", getProductVariant);
 

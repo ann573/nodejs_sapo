@@ -4,6 +4,7 @@ import {
   getAllAttribute,
   getAttributeById,
   createAttribute,
+  deleteAttribute,
 } from "../controllers/attributeControllers.js";
 
 const attributeRoutes = Router();
@@ -14,5 +15,6 @@ attributeRoutes.get("/", getAllAttribute);
 attributeRoutes.post("/", createAttribute);
 
 attributeRoutes.get("/:id", getAttributeById);
+attributeRoutes.delete("/:id", deleteAttribute);
 
 export default attributeRoutes;

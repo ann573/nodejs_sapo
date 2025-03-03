@@ -118,7 +118,9 @@ export const updateVariant = async (req, res) => {
     }
 
     // Lấy danh sách variant cần xóa
-    const variantsToDelete = await Variant.find({ idProduct: validProductId }).select("_id");
+    const variantsToDelete = await Variant.find({
+      idProduct: validProductId,
+    }).select("_id");
     const variantIds = variantsToDelete.map((variant) => variant._id);
 
     // Xóa các variant cũ
@@ -148,3 +150,4 @@ export const updateVariant = async (req, res) => {
     return errorResponse(res, 500, "Có lỗi xảy ra, vui lòng thử lại sau");
   }
 };
+
