@@ -6,7 +6,7 @@ export const getAllAttribute = async (req, res) => {
   try {
     if (req.role !== "boss")
       return errorResponse(res, 400, "Bạn không có quyền vào trang này");
-    const data = await Attribute.find();
+    const data = await Attribute.find().sort({createdAt: 1});
     return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
@@ -51,7 +51,6 @@ export const deleteAttribute = async (req, res) => {
     }).select("_id");
     // Lấy danh sách ID từ idAttributeValue
     const idList = idAttributeValue.map((attr) => attr._id);
-    console.log(idList);
 
     // Kiểm tra xem có Variant nào đang sử dụng các AttributeValue này không
     const isExist = await Variant.aggregate([
@@ -72,7 +71,6 @@ export const deleteAttribute = async (req, res) => {
       },
     ]);
 
-    console.log(isExist);
     // Nếu tồn tại variant có quantity > 0 thì không thể xóa attribute
     if (isExist.length > 0) {
       return errorResponse(res,500,"Vẫn còn sản phẩm với biến thể, không thể xóa")

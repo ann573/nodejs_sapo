@@ -2,12 +2,14 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import dotenv from "dotenv";
+
 import { findOneUser, postUser } from "../services/userService.js";
 import { errorResponse, successResponse } from "../utils/returnResponse.js";
 
 import { generateAccessToken, generateRefreshToken } from "./../utils/jwt.js";
 
-import dotenv from "dotenv";
+import { emailHtml, emailOTP } from "../lib/constant.js";
 dotenv.config();
 
 const { REFRESH_TOKEN_SECRET, EMAIL_USER, EMAIL_PASS, URL_FRONTEND, EMAIL_TOKEN_SECRET } = process.env;
@@ -29,28 +31,24 @@ export const register = async (req, res) => {
     const isExist = await findOneUser({ email });
     if (isExist) return errorResponse(res, 400, "Email đã tồn tại");
 
-    // Mã hóa mật khẩu tạm thời
     const hashedPassword = bcrypt.hashSync(password, 8);
 
     const emailToken = jwt.sign(
       { name, email, password: hashedPassword },
       EMAIL_TOKEN_SECRET,
-      { expiresIn: "5m" } // ⏰ Token hết hạn sau 5 phút
+      { expiresIn: "5m" } // 
     );
 
     const verificationLink = `${URL_FRONTEND}/verify-email/${emailToken}`;
 
-    // Thiết lập nội dung email
+    
     const mailOptions = {
       from: EMAIL_USER,
       to: email,
       subject: "Xác thực tài khoản",
-      html: `<p>Vui lòng nhấp vào link dưới đây để xác thực tài khoản:</p>
-             <a href="${verificationLink}">Xác thực tài khoản</a> 
-             <p style="text: bold">Lưu ý link sẽ hết hạn sau 5 phút</p>`,
+      html: emailHtml(verificationLink)
     };
 
-    // Gửi email
     await transporter.sendMail(mailOptions);
     return successResponse(res, 200, {}, "Vui lòng kiểm tra email để xác thực tài khoản.");
   } catch (error) {
@@ -164,7 +162,7 @@ export const sendOTP = async (req, res) => {
     from: EMAIL_USER,
     to: email,
     subject: "Mã OTP xác thực",
-    text: `Mã OTP của bạn là: ${otp}. Mã có hiệu lực trong 5 phút.`,
+    html: emailOTP(otp),
   };
 
   try {
@@ -180,6 +178,7 @@ export const sendOTP = async (req, res) => {
 // API Xác thực OTP
 export const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
+
   if (otpStore[email] === otp) {
     delete otpStore[email]; // Xóa OTP sau khi xác thực thành công
     return successResponse(res, 200, {}, "Xác thực OTP thành công");
