@@ -11,15 +11,17 @@ const { PORT, URL_FRONTEND } = process.env;
 
 const app = express();
 
-// {
-//   origin: URL_FRONTEND, // Domain frontend
-//   credentials: true, // Cho phép gửi cookie
-//   allowedHeaders: ["Authorization", "Content-Type"],
-//   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-// }
-app.use(cors({}));
 
-app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:5173", 
+    credentials: true, 
+    allowedHeaders: ["Authorization", "Content-Type"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  })
+);
+
+app.use(cookieParser())
 
 app.use(express.json());
 
