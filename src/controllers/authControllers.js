@@ -12,7 +12,13 @@ import { generateAccessToken, generateRefreshToken } from "./../utils/jwt.js";
 import { emailHtml, emailOTP } from "../lib/constant.js";
 dotenv.config();
 
-const { REFRESH_TOKEN_SECRET, EMAIL_USER, EMAIL_PASS, URL_FRONTEND, EMAIL_TOKEN_SECRET } = process.env;
+const {
+  REFRESH_TOKEN_SECRET,
+  EMAIL_USER,
+  EMAIL_PASS,
+  URL_FRONTEND,
+  EMAIL_TOKEN_SECRET,
+} = process.env;
 
 // Cấu hình Nodemailer
 const transporter = nodemailer.createTransport({
@@ -36,27 +42,30 @@ export const register = async (req, res) => {
     const emailToken = jwt.sign(
       { name, email, password: hashedPassword },
       EMAIL_TOKEN_SECRET,
-      { expiresIn: "5m" } // 
+      { expiresIn: "5m" } //
     );
 
     const verificationLink = `${URL_FRONTEND}/verify-email/${emailToken}`;
 
-    
     const mailOptions = {
       from: EMAIL_USER,
       to: email,
       subject: "Xác thực tài khoản",
-      html: emailHtml(verificationLink)
+      html: emailHtml(verificationLink),
     };
 
     await transporter.sendMail(mailOptions);
-    return successResponse(res, 200, {}, "Vui lòng kiểm tra email để xác thực tài khoản.");
+    return successResponse(
+      res,
+      200,
+      {},
+      "Vui lòng kiểm tra email để xác thực tài khoản."
+    );
   } catch (error) {
     console.error(error);
     return errorResponse(res, 500, "Có lỗi xảy ra vui lòng thử lại sau.");
   }
 };
-
 
 export const login = async (req, res) => {
   try {
@@ -129,7 +138,12 @@ export const verifyEmail = async (req, res) => {
       password: decoded.password,
     });
 
-    return successResponse(res, 200, user, "Tài khoản đã được xác thực thành công.");
+    return successResponse(
+      res,
+      200,
+      user,
+      "Tài khoản đã được xác thực thành công."
+    );
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return errorResponse(res, 400, "Link xác thực đã hết hạn.");
@@ -138,7 +152,6 @@ export const verifyEmail = async (req, res) => {
     return errorResponse(res, 500, "Có lỗi xảy ra, vui lòng thử lại sau.");
   }
 };
-
 
 // API Gửi OTP qua Email
 export const sendOTP = async (req, res) => {
@@ -149,15 +162,12 @@ export const sendOTP = async (req, res) => {
   }
 
   const isExist = await findOneUser({ email });
-    if (!isExist) return errorResponse(res, 400, "Email không tồn tại");
+  if (!isExist) return errorResponse(res, 400, "Email không tồn tại");
 
-  // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
   const otp = crypto.randomInt(100000, 999999).toString();
 
-  // Lưu OTP vào bộ nhớ tạm
   otpStore[email] = otp;
 
-  // Thiết lập nội dung email
   const mailOptions = {
     from: EMAIL_USER,
     to: email,
@@ -166,7 +176,6 @@ export const sendOTP = async (req, res) => {
   };
 
   try {
-    // Gửi email
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "Mã OTP đã được gửi tới email của bạn." });
   } catch (error) {
@@ -175,12 +184,11 @@ export const sendOTP = async (req, res) => {
   }
 };
 
-// API Xác thực OTP
 export const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
   if (otpStore[email] === otp) {
-    delete otpStore[email]; // Xóa OTP sau khi xác thực thành công
+    delete otpStore[email];
     return successResponse(res, 200, {}, "Xác thực OTP thành công");
   } else {
     return errorResponse(res, 400, "Mã OTP không chính xác hoặc đã hết hạn.");

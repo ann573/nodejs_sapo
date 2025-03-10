@@ -6,7 +6,8 @@ export const getAllAttribute = async (req, res) => {
   try {
     if (req.role !== "boss")
       return errorResponse(res, 400, "Bạn không có quyền vào trang này");
-    const data = await Attribute.find().sort({createdAt: 1});
+
+    const data = await Attribute.find().sort({ createdAt: 1 });
     return successResponse(res, 200, data);
   } catch (error) {
     console.log(error);
@@ -73,8 +74,11 @@ export const deleteAttribute = async (req, res) => {
 
     // Nếu tồn tại variant có quantity > 0 thì không thể xóa attribute
     if (isExist.length > 0) {
-      return errorResponse(res,500,"Vẫn còn sản phẩm với biến thể, không thể xóa")
-      
+      return errorResponse(
+        res,
+        500,
+        "Vẫn còn sản phẩm với biến thể, không thể xóa"
+      );
     }
 
     // Nếu không có variant nào sử dụng, tiến hành xóa
