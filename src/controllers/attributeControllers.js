@@ -62,7 +62,7 @@ export const deleteAttribute = async (req, res) => {
       },
       {
         $project: {
-          stock: 1, // Chỉ lấy trường quantity
+          stock: 1,
         },
       },
       {
@@ -72,7 +72,6 @@ export const deleteAttribute = async (req, res) => {
       },
     ]);
 
-    // Nếu tồn tại variant có quantity > 0 thì không thể xóa attribute
     if (isExist.length > 0) {
       return errorResponse(
         res,
@@ -80,11 +79,11 @@ export const deleteAttribute = async (req, res) => {
         "Vẫn còn sản phẩm với biến thể, không thể xóa"
       );
     }
-
     // Nếu không có variant nào sử dụng, tiến hành xóa
-    // await AttributeValue.deleteMany({ attributeId: id });
+    const data = await AttributeValue.find({ attributeId: id });
     // await Attribute.findByIdAndDelete(id);
-
+    
+    console.log(data);
     return res.status(200).json({ message: "Xóa thuộc tính thành công!" });
   } catch (error) {
     return res.status(500).json({ message: "Lỗi server", error });
