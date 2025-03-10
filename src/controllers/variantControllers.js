@@ -79,7 +79,7 @@ export const createVariant = async (req, res) => {
 export const decreaseQuantity = async (product) => {
   try {
     const idVariant = new mongoose.Types.ObjectId(product.idVariant);
-    const abc = await Variant.findOneAndUpdate(
+    await Variant.findOneAndUpdate(
       {
         _id: idVariant,
       },

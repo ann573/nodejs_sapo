@@ -1,10 +1,10 @@
-import { endOfDay, startOfDay } from "date-fns";
-import User from "../models/user.js";
-import { findAllUser, findOneUser } from "../services/userService.js";
-import { errorResponse, successResponse } from "../utils/returnResponse.js";
 import bcrypt from "bcryptjs";
+import { endOfDay, startOfDay } from "date-fns";
 import dotenv from "dotenv";
 import Order from "../models/order.js";
+import User from "../models/user.js";
+import { findAllUser } from "../services/userService.js";
+import { errorResponse, successResponse } from "../utils/returnResponse.js";
 dotenv.config();
 
 export const getUser = async (req, res) => {
@@ -22,6 +22,7 @@ export const getUser = async (req, res) => {
       "Lấy danh sách nhân viên thành công"
     );
   } catch (error) {
+    console.log(error);
     return errorResponse(res, 500, "Có lỗi xảy ra");
   }
 };

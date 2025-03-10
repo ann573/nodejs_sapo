@@ -1,7 +1,9 @@
 import mongoose, { Schema } from "mongoose";
-import { changeScoreAndAddOrder, editIsUsedScore } from "../services/CustomerService.js";
-import { AddOrder } from "../services/userService.js";
-import { decreaseQuantity } from './../controllers/variantControllers.js';
+import {
+  changeScoreAndAddOrder,
+  editIsUsedScore,
+} from "../services/CustomerService.js";
+import { decreaseQuantity } from "./../controllers/variantControllers.js";
 
 const productInOrderSchema = new Schema(
   {
@@ -10,7 +12,7 @@ const productInOrderSchema = new Schema(
     quantity: Number,
     variant: String,
     _id: Schema.Types.ObjectId,
-    idVariant: String
+    idVariant: String,
   },
   { _id: false }
 );
@@ -31,9 +33,8 @@ const orderSchema = new Schema(
       type: String,
     },
     score: {
-      type: Number
-    }
-
+      type: Number,
+    },
   },
   {
     timestamps: true,
@@ -48,13 +49,12 @@ orderSchema.pre("save", async function (next) {
   next();
 });
 
-orderSchema.post("save", async function (req) {
-
+orderSchema.post("save", async function () {
   this.products.forEach((item) => {
     decreaseQuantity(item);
   });
 
-  if (this.customer ) {
+  if (this.customer) {
     changeScoreAndAddOrder(this.customer, this._id);
   }
 });

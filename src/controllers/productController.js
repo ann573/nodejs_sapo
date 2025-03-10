@@ -27,7 +27,9 @@ export const getProductByID = async (req, res) => {
     const { id } = req.params;
     const products = await findProductByID(id);
     successResponse(res, 200, products);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const createProducts = async (req, res) => {
@@ -67,6 +69,7 @@ export const removeProducts = async (req, res) => {
     const data = await deleteProduct(id);
     return successResponse(res, 200, data);
   } catch (error) {
+    console.log(error);
     errorResponse(res, 500, "Có lỗi xảy ra");
   }
 };

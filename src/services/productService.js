@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Product from "./../models/product.js";
 export const fetchAllProduct = async (limit, skip, sortTitle) => {
   try {
