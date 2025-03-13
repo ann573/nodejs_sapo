@@ -6,6 +6,7 @@ import customerRoutes from "./customerRoutes.js";
 import attributeRoutes from "./attributeRoutes.js";
 import AttributeValueRoutes from "./attributeValueRoutes.js";
 import variantRoutes from "./variantRoutes.js";
+import messageRoutes from "./messageRoutes.js";
 
 const routes = Router();
 
@@ -16,5 +17,6 @@ routes.use("/customers", customerRoutes);
 routes.use("/attributes", attributeRoutes);
 routes.use("/attribute_value", AttributeValueRoutes);
 routes.use("/variants", variantRoutes);
+routes.use("/messages", messageRoutes);
 
 export default routes;

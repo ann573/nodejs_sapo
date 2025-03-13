@@ -92,7 +92,7 @@ export const login = async (req, res) => {
       path: "/",
     });
 
-    return successResponse(res, 200, { accessToken, user: data });
+    return successResponse(res, 200, { accessToken, user });
   } catch (error) {
     console.log(error);
     return errorResponse(res, 500, "Có lỗi xảy ra, vui lòng thử lại sau");

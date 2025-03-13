@@ -2,6 +2,7 @@ import AttributeValue from "../models/attributeValue.js";
 import Variant from "../models/variant.js";
 import Attribute from "./../models/attribute.js";
 import { errorResponse, successResponse } from "./../utils/returnResponse.js";
+import Product from './../models/product.js';
 export const getAllAttribute = async (req, res) => {
   try {
     if (req.role !== "boss")
@@ -46,46 +47,37 @@ export const deleteAttribute = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Tìm tất cả AttributeValue có attributeId = id
-    const idAttributeValue = await AttributeValue.find({
-      attributeId: id,
-    }).select("_id");
-    // Lấy danh sách ID từ idAttributeValue
-    const idList = idAttributeValue.map((attr) => attr._id);
+    //  Tìm tất cả AttributeValue có attributeId = id
+    const idList = await AttributeValue.find({ attributeId: id }).distinct("_id");
 
-    // Kiểm tra xem có Variant nào đang sử dụng các AttributeValue này không
-    const isExist = await Variant.aggregate([
-      {
-        $match: {
-          attribute: { $in: idList }, // Kiểm tra xem attribute có nằm trong danh sách idList không
-        },
-      },
-      {
-        $project: {
-          stock: 1,
-        },
-      },
-      {
-        $match: {
-          stock: { $gt: 0 }, // Lọc các variant có số lượng > 0
-        },
-      },
+    //  Kiểm tra xem có Variant nào còn stock đang sử dụng AttributeValue này không
+    const isExist = await Variant.exists({
+      attribute: { $in: idList },
+      stock: { $gt: 0 },
+    });
+
+    if (isExist) {
+      return res.status(400).json({ message: "Vẫn còn sản phẩm với biến thể, không thể xóa" });
+    }
+
+    // Tìm danh sách Variant ID cần xóa
+    const variantIds = await Variant.find({ attribute: { $in: idList } }).distinct("_id");
+
+    //  Tìm danh sách Product ID cần xóa (có chứa variant bị xóa)
+    const productIds = await Product.find({ variants: { $in: variantIds } }).distinct("_id");
+
+    //  Xóa tất cả dữ liệu liên quan trong **một lần** bằng `Promise.all()`
+    await Promise.all([
+      AttributeValue.deleteMany({ _id: { $in: idList } }),
+      Variant.deleteMany({ _id: { $in: variantIds } }),
+      Product.deleteMany({ _id: { $in: productIds } }),
+      Attribute.findByIdAndDelete(id),
     ]);
 
-    if (isExist.length > 0) {
-      return errorResponse(
-        res,
-        500,
-        "Vẫn còn sản phẩm với biến thể, không thể xóa"
-      );
-    }
-    // Nếu không có variant nào sử dụng, tiến hành xóa
-    const data = await AttributeValue.find({ attributeId: id });
-    // await Attribute.findByIdAndDelete(id);
-    
-    console.log(data);
     return res.status(200).json({ message: "Xóa thuộc tính thành công!" });
+
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Lỗi server", error });
   }
 };

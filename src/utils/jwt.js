@@ -6,7 +6,6 @@ dotenv.config()
 const {PRIVATE_KEY, REFRESH_TOKEN_SECRET} = process.env
 
 
-
 export const generateAccessToken = (payload) => {
   return jwt.sign(payload, PRIVATE_KEY, { expiresIn: "1h" });
 };
