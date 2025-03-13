@@ -2,6 +2,7 @@ import { errorResponse, successResponse } from "../utils/returnResponse.js";
 import User from "./../models/user.js";
 import Message from "../models/message.js";
 import cloudinary from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "./../lib/socket.js";
 
 export const getUserForSidebar = async (req, res) => {
   try {
@@ -34,32 +35,36 @@ export const getMessages = async (req, res) => {
 };
 
 export const sendMessages = async (req, res) => {
-    try {
-        const {text, image } = req.body;
-        const {id: receiverId} = req.params;
+  try {
+    const { text, image } = req.body;
+    const { id: receiverId } = req.params;
 
-        const senderId = req.id;
+    const senderId = req.id;
 
-        let imageUrl;
+    let imageUrl;
 
-        if (image) {
-            const uploadResponse = await cloudinary.uploader.upload(image);
-            imageUrl  = uploadResponse.secure_url
-        }
-
-        const newMessage = new Message({
-            senderId,
-            receiverId,
-            text,
-            image: imageUrl
-        })  
-
-        await newMessage.save();
-
-        // realtime function 
-
-        successResponse(res,201, newMessage)
-    } catch (error) {
-        console.log(error);
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
     }
-}
+
+    const newMessage = new Message({
+      senderId,
+      receiverId,
+      text,
+      image: imageUrl,
+    });
+
+    await newMessage.save();
+
+    // realtime function
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
+
+    successResponse(res, 201, newMessage);
+  } catch (error) {
+    console.log(error);
+  }
+};

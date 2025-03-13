@@ -4,12 +4,11 @@ import express from "express";
 import connectDB from "./src/config/db.js";
 import routes from "./src/routes/index.js";
 import cookieParser from "cookie-parser";
+import { app, server } from "./src/lib/socket.js";
 
 dotenv.config();
 
 const { PORT, URL_FRONTEND } = process.env;
-
-const app = express();
 
 
 app.use(
@@ -44,6 +43,6 @@ connectDB();
 
 app.use("/v1/api", routes);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("Server is running on port 8888");
 });
